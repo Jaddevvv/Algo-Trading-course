@@ -85,6 +85,7 @@ def find_multiple_trendlines(df, window=10, min_touches=nb_touches, min_distance
     
     trendlines = []
     used_points = set()  # Keep track of points we've used
+    valid_lines_count = 0  # Track number of valid lines separately
     
     # Start from the last point and try to find valid trendlines
     for i in range(len(extrema_idx)-1):
@@ -112,7 +113,7 @@ def find_multiple_trendlines(df, window=10, min_touches=nb_touches, min_distance
             
             # Count touches
             touches = 0
-            tolerance = 0.005  # 0.5% tolerance
+            tolerance = 0.01  # 1% tolerance
             
             # Check for touches between the two points
             for k in range(min(x1, x2), max(x1, x2)):
@@ -120,15 +121,28 @@ def find_multiple_trendlines(df, window=10, min_touches=nb_touches, min_distance
                 if abs(prices[k] - expected_y) / expected_y < tolerance:
                     touches += 1
             
-            # If we found a valid trendline, add it to our list
+            # If we found a valid trendline, check for price crossover
             if touches >= min_touches:
-                trendlines.append(((m, b), (x2, x1)))  # Store points in chronological order
-                used_points.add(x1)
-                used_points.add(x2)
-                break  # Move to next recent point
+                # Check if any price crosses above/below the line after x1
+                valid_line = True
+                for k in range(x1, len(prices)):
+                    expected_y = m * k + b
+                    if is_support and prices[k] < expected_y - expected_y * tolerance:
+                        valid_line = False
+                        break
+                    elif not is_support and prices[k] > expected_y + expected_y * tolerance:
+                        valid_line = False
+                        break
                 
-        # If we have enough trendlines, stop searching
-        if len(trendlines) >= max_lines:
+                if valid_line:
+                    trendlines.append(((m, b), (x2, x1)))  # Store points in chronological order
+                    used_points.add(x1)
+                    used_points.add(x2)
+                    valid_lines_count += 1
+                    break  # Move to next recent point
+                
+        # If we have enough valid trendlines, stop searching
+        if valid_lines_count >= max_lines:
             break
     
     return trendlines
