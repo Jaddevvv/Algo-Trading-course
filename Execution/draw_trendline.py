@@ -3,7 +3,6 @@ import mplfinance as mpf
 import os
 import numpy as np
 from scipy.signal import argrelextrema
-import matplotlib.pyplot as plt
 
 
 # Get user input for number of levels
@@ -71,7 +70,7 @@ def find_support_resistance(df, window=100, num_touches=10, price_threshold=20):
     return ([x[0] for x in support_levels[:nb_levels]], 
             [x[0] for x in resistance_levels[:nb_levels]])
 
-def find_multiple_trendlines(df, window=20, min_touches=nb_touches, min_distance=100, max_lines=nb_levels, is_support=True):
+def find_multiple_trendlines(df, window=10, min_touches=nb_touches, min_distance=10, max_lines=nb_levels, is_support=True):
     # Get price data based on whether we're looking for support or resistance lines
     prices = df['low'].values if is_support else df['high'].values
     
@@ -166,13 +165,17 @@ if support_levels or resistance_levels:
 alines = []
 colors = []
 
+# Get the last index for extending lines
+last_idx = len(df) - 1
+
 # Add bottom trendlines (green)
 for trendline, points in bottom_trendlines:
     m, b = trendline
     x1, x2 = points
     y1 = m * x1 + b
-    y2 = m * x2 + b
-    alines.append([(df.index[x1], y1), (df.index[x2], y2)])
+    # Extend to the right edge of the chart
+    y_end = m * last_idx + b
+    alines.append([(df.index[x1], y1), (df.index[last_idx], y_end)])
     colors.append('g')
 
 # Add top trendlines (blue)
@@ -180,8 +183,9 @@ for trendline, points in top_trendlines:
     m, b = trendline
     x1, x2 = points
     y1 = m * x1 + b
-    y2 = m * x2 + b
-    alines.append([(df.index[x1], y1), (df.index[x2], y2)])
+    # Extend to the right edge of the chart
+    y_end = m * last_idx + b
+    alines.append([(df.index[x1], y1), (df.index[last_idx], y_end)])
     colors.append('b')
 
 if alines:
