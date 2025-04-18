@@ -7,11 +7,11 @@ import matplotlib.pyplot as plt
 
 
 # Get user input for number of levels
-nb_levels = 5
-nb_touches = 2
+nb_levels = 1
+nb_touches = 3
 
 # Read the CSV file
-df = pd.read_csv("History/BTCUSDT_1h_2.csv")
+df = pd.read_csv("../History/BTCUSDT_1h_2.csv")
 
 # Drop last 500 rows 
 df = df.tail(5000)

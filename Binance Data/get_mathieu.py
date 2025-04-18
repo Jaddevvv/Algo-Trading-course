@@ -7,16 +7,16 @@ import time
 # Clés API Binance (mettre None pour accès public)
 client = Client(api_key=None, api_secret=None)
 
-# Vérification et création du dossier "History"
-if not os.path.exists("History"):
-    os.makedirs("History")
+# Vérification et création du dossier "../History"
+if not os.path.exists("../History"):
+    os.makedirs("../History")
 
 # Définition des paires et des timeframes
 paires = ["BTCUSDT", "ETHUSDT", "BCHUSDT", "SOLUSDT", "DOGEUSDT"]
 timeframes = ["1h"]  # 1h = 1 heure, etc.
 
-# Fonction pour récupérer l'History complet
-def get_full_history(pair, timeframe, start_date="2017-01-01"):
+# Fonction pour récupérer l'../History complet
+def get_full_../History(pair, timeframe, start_date="2017-01-01"):
     limit = 500
     all_data = []
     start_ts = int(datetime.strptime(start_date, "%Y-%m-%d").timestamp() * 1000)
@@ -63,12 +63,12 @@ def get_full_history(pair, timeframe, start_date="2017-01-01"):
 for pair in paires:
     for tf in timeframes:
         print(f"Téléchargement en cours pour {pair} en timeframe {tf}")
-        df = get_full_history(pair, tf)
+        df = get_full_../History(pair, tf)
 
         if df is not None and not df.empty:
             start_str = df["open_time"].min().strftime("%Y%m%d")
             end_str = df["open_time"].max().strftime("%Y%m%d")
-            filename = f"History/{pair}_{tf}_{start_str}_{end_str}.csv"
+            filename = f"../History/{pair}_{tf}_{start_str}_{end_str}.csv"
 
             df.to_csv(filename, index=False)
             print(f"Fichier sauvegardé : {filename}")
