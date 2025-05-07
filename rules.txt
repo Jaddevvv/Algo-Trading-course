@@ -36,3 +36,10 @@ EVALUATION
 12 Code should be clean
 
 
+
+GOOD Grades//
+Architecture de backtest exceptionnelle
+USER INPUT backtest
+Rendre le code plus clair dans un notebook
+
+
