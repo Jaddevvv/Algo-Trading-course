@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
 
 def load_and_prepare_data(file_path, lookback_days=365):
     """
@@ -42,6 +43,7 @@ def backtest_ma_crossover_strategy(df, short_sma_col, long_sma_col, initial_capi
     entry_price = 0
     shares_held = 0
     trades_log = []
+    profit_points = []
 
     # Ensure columns exist
     if short_sma_col not in df.columns or long_sma_col not in df.columns:
@@ -62,6 +64,7 @@ def backtest_ma_crossover_strategy(df, short_sma_col, long_sma_col, initial_capi
             if not in_position:
                 if capital <= 0: continue
                 investment_amount = capital * position_size_fraction
+                leverage = investment_amount / capital
                 shares_to_buy = investment_amount / current_price
                 
                 entry_price = current_price
@@ -73,7 +76,8 @@ def backtest_ma_crossover_strategy(df, short_sma_col, long_sma_col, initial_capi
                     'price': round(current_price, 2),
                     'shares': round(shares_held, 5),
                     'capital_after_entry': round(capital, 2),
-                    'timestamp': current_timestamp
+                    'timestamp': current_timestamp,
+                    'leverage': leverage
                 })
 
         # Sell Signal: Short SMA crosses below Long SMA
@@ -90,16 +94,31 @@ def backtest_ma_crossover_strategy(df, short_sma_col, long_sma_col, initial_capi
                     'shares': round(shares_held, 5),
                     'profit': round(profit, 2),
                     'capital_after_exit': round(capital, 2),
-                    'timestamp': current_timestamp
+                    'timestamp': current_timestamp,
                 })
                 in_position = False
                 entry_price = 0
                 shares_held = 0
-                
+                profit_points.append(profit)
     # If still in position at the end, you might want to close it or log it
     # For this version, we'll just note the final capital based on trades executed.
 
-    return trades_log, capital
+    return trades_log, capital, profit_points
+
+
+def draw_equity_chart(profit_points):
+    # Calculate cumulative profit
+    cumulative_profit = np.cumsum(profit_points)
+    
+    # Plot equity chart
+    plt.figure(figsize=(12, 6))
+    plt.plot(cumulative_profit, label='Cumulative Profit')
+    plt.title('Equity Chart')
+    plt.xlabel('Time')
+    plt.ylabel('Profit')
+    plt.legend()
+    plt.show()
+
 
 def print_ma_results(trades_log, final_capital, initial_capital=10000):
     print("\n--- MA Crossover Strategy Backtest Results ---")
@@ -109,14 +128,35 @@ def print_ma_results(trades_log, final_capital, initial_capital=10000):
         return
 
     total_profit = final_capital - initial_capital
+    max_leverage = max(trade['leverage'] for trade in trades_log if 'leverage' in trade)
+    positions_count = sum(1 for trade in trades_log if "profit" in trade)
+    
+    winning_trades = [trade['profit'] for trade in trades_log if "profit" in trade and trade['profit'] > 0]
+    losing_trades = [trade['profit'] for trade in trades_log if "profit" in trade and trade['profit'] < 0]
+
+    winrate = 0
+    if positions_count > 0:
+        winrate = len(winning_trades) / positions_count * 100
+
+    average_rr_text = "N/A"
+    if winning_trades and losing_trades:
+        avg_win = np.average(winning_trades)
+        avg_loss = np.average(losing_trades)
+        average_rr = avg_win / abs(avg_loss)
+        average_rr_text = f"{average_rr:.2f}"
+
+
     print(f"Initial Capital: ${initial_capital:.2f}")
     print(f"Final Capital: ${final_capital:.2f}")
     print(f"Total Profit/Loss: ${total_profit:.2f}")
+    print(f"Max Leverage Used: {max_leverage:.2f}")
+    print(f"Winrate: {winrate:.2f}%")
+    print(f"Average RR: {average_rr_text}")
 
     buys = sum(1 for trade in trades_log if trade['type'] == 'BUY')
     sells = sum(1 for trade in trades_log if trade['type'] == 'SELL')
     print(f"Total Buy Signals Acted On: {buys}")
-    print(f"Total Sell Signals (Positions Closed): {sells}")
+    print(f"Total Positions Closed: {sells}")
 
     print("\n--- Trades Log ---")
     trade_pair_count = 0
@@ -153,9 +193,13 @@ if __name__ == "__main__":
             short_col_name = f'SMA{sma_short_period}'
             long_col_name = f'SMA{sma_long_period}'
             
-            trades, final_cap = backtest_ma_crossover_strategy(data_df_ma, 
+            trades, final_cap, profit_points = backtest_ma_crossover_strategy(data_df_ma, 
                                                                short_sma_col=short_col_name, 
                                                                long_sma_col=long_col_name,
                                                                initial_capital=initial_capital_value,
                                                                position_size_fraction=position_size_frac)
             print_ma_results(trades, final_cap, initial_capital=initial_capital_value)
+
+            draw_equity_chart(profit_points)
+
+

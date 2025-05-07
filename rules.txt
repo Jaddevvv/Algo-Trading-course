@@ -14,3 +14,25 @@ OBJECTIF Pour le 30/04:
 - Bonus (M,W)
 
 
+
+
+OBJECTIF Pour le 15/05:
+BACKTEST : 
+1 Start date - end Date
+2 At leaast 1000 candles of testing period
+3 Take fees 0.1% (majorer légèrement), double fees in case (0.2%)
+4 Décrire conditions entrées et sorties (python notebook)
+5 Est ce que les positions cumulées ou pas
+6 Implémenter un levier maximum 
+7 Comparer stratégie actuelle avec Buy & Hold
+
+STATS
+8 Give results Equity charts (mettre levolution du prix dans le meme) and stats; sortino ratio etc
+9 Run up & DD maximum
+10 value-at-risk 
+
+EVALUATION 
+11 On the quality of the code, can it be changed, user optimizable
+12 Code should be clean
+
+
