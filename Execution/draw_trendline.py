@@ -10,7 +10,7 @@ nb_levels = 1
 nb_touches = 3
 
 # Read the CSV file
-df = pd.read_csv("../History/BTCUSDT_1h_2.csv")
+df = pd.read_csv("../Data/BTCUSDT_1h_2.csv")
 
 # Drop last 500 rows 
 df = df.tail(5000)
@@ -21,10 +21,14 @@ df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
 # Set timestamp as index
 df.set_index('timestamp', inplace=True)
 
-def find_support_resistance(df, window=100, num_touches=10, price_threshold=20):
+def find_support_resistance(df, window=100, num_touches=3, price_threshold=20):
     # Convert DataFrame to numpy array for faster computation
     highs = df['high'].values
     lows = df['low'].values
+    volumes = df['volume'].values  # Get volume data
+    
+    # Calculate rolling mean of volume
+    volume_ma = pd.Series(volumes).rolling(window=window, min_periods=1).mean().values
     
     # Find local maxima and minima
     high_idx = argrelextrema(highs, np.greater, order=window)[0]
@@ -44,7 +48,8 @@ def find_support_resistance(df, window=100, num_touches=10, price_threshold=20):
         # Count touches for resistance
         touches = np.sum(
             (highs >= level * (1-price_threshold/100)) & 
-            (highs <= level * (1+price_threshold/100))
+            (highs <= level * (1+price_threshold/100)) &
+            (volumes >= volume_ma)  # Add volume condition
         )
         if touches >= num_touches:
             # Store level with its index (for recency) and touch count
@@ -56,7 +61,8 @@ def find_support_resistance(df, window=100, num_touches=10, price_threshold=20):
         # Count touches for support
         touches = np.sum(
             (lows >= level * (1-price_threshold/100)) & 
-            (lows <= level * (1+price_threshold/100))
+            (lows <= level * (1+price_threshold/100)) &
+            (volumes >= volume_ma)  # Add volume condition
         )
         if touches >= num_touches:
             # Store level with its index (for recency) and touch count
