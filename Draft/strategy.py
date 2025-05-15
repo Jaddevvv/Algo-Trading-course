@@ -397,8 +397,29 @@ def print_ma_results(trades, final_capital, initial_capital=10000):
     if not metrics:
         print("Could not calculate performance metrics.")
         return
+    
+    # Calculate Buy and Hold returns
+    # Get first and last price from the trades
+    first_trade = next((t for t in trades if t['type'] == 'BUY'), None)
+    last_trade = next((t for t in reversed(trades) if 'exit_price' in t), None)
+    
+    if first_trade and last_trade:
+        entry_price = first_trade['price']
+        exit_price = last_trade['exit_price']
+        buy_hold_shares = initial_capital / entry_price
+        buy_hold_final = buy_hold_shares * exit_price
+        buy_hold_return = ((buy_hold_final - initial_capital) / initial_capital) * 100
+        buy_hold_profit = buy_hold_final - initial_capital
         
-    # Print Results in organized sections
+        print("\n=== Strategy vs Buy & Hold Comparison ===")
+        print(f"Buy & Hold Final Capital: ${buy_hold_final:,.2f}")
+        print(f"Buy & Hold Total Return: {buy_hold_return:,.2f}%")
+        print(f"Buy & Hold Total Profit: ${buy_hold_profit:,.2f}")
+        print(f"Strategy Final Capital: ${final_capital:,.2f}")
+        print(f"Strategy Total Return: {metrics['total_return']:,.2f}%")
+        print(f"Strategy Total Profit: ${final_capital - initial_capital:,.2f}")
+        print(f"Strategy Outperformance: {metrics['total_return'] - buy_hold_return:,.2f}%")
+        
     print("\n--- Capital and Returns ---")
     print(f"Initial Capital: ${initial_capital:,.2f}")
     print(f"Final Capital: ${final_capital:,.2f}")
@@ -590,7 +611,7 @@ if __name__ == "__main__":
     sma_short_period = 35
     sma_long_period = 450
     initial_capital_value = 10000
-    position_size_frac = 0.5
+    position_size_frac = 1
     SL = 0
     TP = 0
 
