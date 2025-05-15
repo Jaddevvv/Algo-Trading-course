@@ -46,12 +46,6 @@ namespace cAlgo.Robots
 
         protected override void OnBar()
         {
-            // Ensure MA periods are valid for typical crossover logic, otherwise the signal meaning might be inverted
-            // The HasCrossedAbove/Below methods will still function based on the actual values.
-            // if (FastMaPeriod >= SlowMaPeriod)
-            // {
-            //     return; // Or handle as an inverted strategy if desired. For now, we allow it with a warning.
-            // }
 
             bool isLongPositionOpen = Positions.Find(Label, SymbolName, TradeType.Buy) != null;
 
